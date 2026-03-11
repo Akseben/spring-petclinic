@@ -25,6 +25,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import jakarta.servlet.ServletException;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -150,6 +153,40 @@ class VisitControllerWebTest {
 				.param("description", "Checkup: teeth cleaning & vaccines"))
 			.andExpect(status().is3xxRedirection())
 			.andExpect(redirectedUrl("/owners/1"));
+	}
+
+	// ========== Exception Handling Tests - Invalid IDs ==========
+
+	@Test
+	void testInitNewVisitFormWithInvalidOwnerId() throws Exception {
+		// Triggered through lambda exception handler in
+		// VisitController.loadPetWithVisit()
+		assertThrows(ServletException.class, () -> mockMvc.perform(get("/owners/9999/pets/1/visits/new")));
+	}
+
+	@Test
+	void testInitNewVisitFormWithInvalidPetId() throws Exception {
+		// Triggered through lambda exception handler in
+		// VisitController.loadPetWithVisit()
+		assertThrows(ServletException.class, () -> mockMvc.perform(get("/owners/1/pets/9999/visits/new")));
+	}
+
+	@Test
+	void testProcessNewVisitFormWithInvalidOwnerId() throws Exception {
+		// Triggered through lambda exception handler in
+		// VisitController.loadPetWithVisit()
+		assertThrows(ServletException.class,
+				() -> mockMvc.perform(post("/owners/9999/pets/1/visits/new").param("date", LocalDate.now().toString())
+					.param("description", "Regular checkup")));
+	}
+
+	@Test
+	void testProcessNewVisitFormWithInvalidPetId() throws Exception {
+		// Triggered through lambda exception handler in
+		// VisitController.loadPetWithVisit()
+		assertThrows(ServletException.class,
+				() -> mockMvc.perform(post("/owners/1/pets/9999/visits/new").param("date", LocalDate.now().toString())
+					.param("description", "Regular checkup")));
 	}
 
 }

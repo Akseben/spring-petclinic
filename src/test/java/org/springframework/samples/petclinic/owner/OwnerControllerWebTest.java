@@ -23,6 +23,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import jakarta.servlet.ServletException;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -280,6 +283,31 @@ class OwnerControllerWebTest {
 				.param("telephone", "notaphone"))
 			.andExpect(status().isOk())
 			.andExpect(view().name("owners/createOrUpdateOwnerForm"));
+	}
+
+	// ========== Exception Handling Tests - Invalid IDs ==========
+
+	@Test
+	void testShowOwnerWithInvalidId() throws Exception {
+		// Triggered through lambda exception handler in OwnerController.findOwner()
+		assertThrows(ServletException.class, () -> mockMvc.perform(get("/owners/9999")));
+	}
+
+	@Test
+	void testInitUpdateFormWithInvalidId() throws Exception {
+		// Triggered through lambda exception handler in OwnerController.findOwner()
+		assertThrows(ServletException.class, () -> mockMvc.perform(get("/owners/9999/edit")));
+	}
+
+	@Test
+	void testProcessUpdateFormWithInvalidId() throws Exception {
+		// Triggered through lambda exception handler in OwnerController.findOwner()
+		assertThrows(ServletException.class,
+				() -> mockMvc.perform(post("/owners/9999/edit").param("firstName", "George")
+					.param("lastName", "Franklin")
+					.param("address", "500 Liberty St")
+					.param("city", "Madison")
+					.param("telephone", "6085551023")));
 	}
 
 }

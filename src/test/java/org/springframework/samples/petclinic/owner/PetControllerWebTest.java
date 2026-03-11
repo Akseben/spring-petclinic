@@ -24,6 +24,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import jakarta.servlet.ServletException;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -128,6 +131,55 @@ class PetControllerWebTest {
 				.param("type", "dog"))
 			.andExpect(status().isOk())
 			.andExpect(view().name("pets/createOrUpdatePetForm"));
+	}
+
+	// ========== Exception Handling Tests - Invalid IDs ==========
+
+	@Test
+	void testInitCreationFormWithInvalidOwnerId() throws Exception {
+		// Triggered through lambda exception handler in PetController.findOwner()
+		assertThrows(ServletException.class, () -> mockMvc.perform(get("/owners/9999/pets/new")));
+	}
+
+	@Test
+	void testInitUpdateFormWithInvalidOwnerId() throws Exception {
+		// Triggered through lambda exception handler in PetController.findOwner()
+		assertThrows(ServletException.class, () -> mockMvc.perform(get("/owners/9999/pets/1/edit")));
+	}
+
+	@Test
+	void testInitUpdateFormWithInvalidPetId() throws Exception {
+		// Triggered through lambda exception handler in PetController.findPet()
+		assertThrows(ServletException.class, () -> mockMvc.perform(get("/owners/1/pets/9999/edit")));
+	}
+
+	@Test
+	void testProcessCreationFormWithInvalidOwnerId() throws Exception {
+		// Triggered through lambda exception handler in PetController.findOwner()
+		assertThrows(ServletException.class,
+				() -> mockMvc.perform(post("/owners/9999/pets/new").param("name", "Buddy")
+					.param("birthDate", "2020-01-01")
+					.param("type", "dog")));
+	}
+
+	@Test
+	void testProcessUpdateFormWithInvalidOwnerId() throws Exception {
+		// Triggered through lambda exception handler in PetController.findOwner()
+		assertThrows(ServletException.class,
+				() -> mockMvc.perform(post("/owners/9999/pets/1/edit").param("id", "1")
+					.param("name", "UpdatedName")
+					.param("birthDate", "2020-01-01")
+					.param("type", "dog")));
+	}
+
+	@Test
+	void testProcessUpdateFormWithInvalidPetId() throws Exception {
+		// Triggered through lambda exception handler in PetController.findPet()
+		assertThrows(ServletException.class,
+				() -> mockMvc.perform(post("/owners/1/pets/9999/edit").param("id", "9999")
+					.param("name", "UpdatedName")
+					.param("birthDate", "2020-01-01")
+					.param("type", "dog")));
 	}
 
 }
